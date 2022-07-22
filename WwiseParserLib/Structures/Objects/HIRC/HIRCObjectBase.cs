@@ -73,7 +73,7 @@ namespace WwiseParserLib.Structures.Objects.HIRC
         MusicTrack,
         MusicSwitchContainer,
         MusicPlaylistContainer,
-        Attenuation,
+        Attenuation, // 0x0E
         DialogueEvent,
         MotionBus,
         MotionEffect,

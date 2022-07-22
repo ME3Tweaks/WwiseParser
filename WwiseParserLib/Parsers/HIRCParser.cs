@@ -227,7 +227,9 @@ namespace WwiseParserLib.Parsers
 
         private static HIRCObjectBase ParseAttenuation2019(byte[] data)
         {
-            using (var reader = new BinaryReader(new MemoryStream(data)))
+            throw new NotImplementedException();
+            // Todo: The rest of the thing
+            /*using (var reader = new BinaryReader(new MemoryStream(data)))
             {
                 var attenuation = new Attenuation(data.Length);
                 attenuation.Id = reader.ReadUInt32();
@@ -312,7 +314,7 @@ namespace WwiseParserLib.Parsers
 
                 Debug.Assert(reader.BaseStream.Position == reader.BaseStream.Length);
                 return attenuation;
-            }
+            }*/
         }
 
         public static AudioBus ParseAudioBus(byte[] data, bool auxiliary)
