@@ -67,7 +67,7 @@ namespace WwiseParserLib.Structures.SoundBanks
                         // Wwise 2013
                         return HIRCParser.Parse2013(blob, noParse);
                     }
-                    else
+                    else // 0x86 = 134 2019.1
                     {
                         // Wwise 2019
                         return HIRCParser.Parse2019(blob, noParse);
