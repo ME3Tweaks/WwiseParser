@@ -79,6 +79,9 @@ namespace WwiseParserLib.Structures.SoundBanks
                 case SoundBankChunkType.STID:
                     return STIDParser.Parse(blob);
 
+                case SoundBankChunkType.DIDX:
+                    return DIDXParser.Parse(blob);
+
                 default:
                     return null;
             }
