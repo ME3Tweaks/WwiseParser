@@ -193,6 +193,7 @@ namespace WwiseParserLib.Parsers
                 var objects = new Dictionary<byte, int>();
                 for (var i = 0; i < hircSection.ObjectCount; i++)
                 {
+                    Debug.WriteLine($"Reading at 0x{reader.BaseStream.Position:X8}");
                     var objectType = reader.ReadByte();
                     var objectLength = reader.ReadUInt32();
                     var objectBlob = reader.ReadBytes((int)objectLength);
@@ -227,94 +228,59 @@ namespace WwiseParserLib.Parsers
 
         private static HIRCObjectBase ParseAttenuation2019(byte[] data)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
             // Todo: The rest of the thing
-            /*using (var reader = new BinaryReader(new MemoryStream(data)))
+            using (var reader = new BinaryReader(new MemoryStream(data)))
             {
-                var attenuation = new Attenuation(data.Length);
-                attenuation.Id = reader.ReadUInt32();
-                attenuation.MidiBehavior = (MusicMidiBehavior)reader.ReadByte();
-                attenuation.SoundCount = reader.ReadUInt32();
-                attenuation.Sounds = new Sound[attenuation.SoundCount];
-                for (var i = 0; i < attenuation.SoundCount; i++)
+                var attenuation = new Attenuation((uint)data.Length);
+                attenuation.Id = reader.ReadUInt32(); // todo: follow other WwiseParser code
+
+                // Attentuation initial values.
+                attenuation.bIsConeEnabled = reader.ReadBoolean();
+                /*
+                 *     if (obj.lastval & 1):
+        elem = obj.node('ConeParams')
+        elem.f32('fInsideDegrees') #fInsideAngle = ToRadians(in_fDegrees) * 0.5
+        elem.f32('fOutsideDegrees') #fOutsideAngle = ToRadians(in_fDegrees) * 0.5
+        elem.f32('fOutsideVolume')
+        elem.f32('LoPass')
+        if cls.version <= 89:
+            pass
+        else:
+            elem.f32('HiPass')
+                 */
+                attenuation.curveToUse = new byte[7]; // <= 141. <= 81 uses 4.
+                for (int i = 0; i < attenuation.curveToUse.Length; i++)
                 {
-                    var sound = new Sound(0);
-                    sound.Unknown_04 = reader.ReadByte();
-                    sound.Unknown_05 = reader.ReadByte();
-                    sound.Conversion = (SoundConversionType)reader.ReadByte();
-                    sound.Unknown_07 = reader.ReadByte();
-                    sound.Source = (SoundSource)reader.ReadByte();
-                    sound.AudioId = reader.ReadUInt32();
-                    sound.AudioLength = reader.ReadUInt32();
-                    sound.AudioType = (SoundType)reader.ReadByte();
-                    attenuation.Sounds[i] = sound;
+                    attenuation.curveToUse[i] = reader.ReadByte();
                 }
-                attenuation.TimeParameterCount = reader.ReadUInt32();
-                attenuation.TimeParameters = new MusicTrackTimeParameter[attenuation.TimeParameterCount];
-                for (var i = 0; i < attenuation.TimeParameterCount; i++)
+                attenuation.NumCurves = reader.ReadByte();
+                attenuation.ConversionTables = new ConversionTable[attenuation.NumCurves];
+                for (var i = 0; i < attenuation.NumCurves; i++)
                 {
-                    MusicTrackTimeParameter timeParameter = default;
-                    timeParameter.SubTrackIndex = reader.ReadUInt32();
-                    timeParameter.AudioId = reader.ReadUInt32();
-                    timeParameter.EventId = reader.ReadUInt32();
-                    timeParameter.BeginOffset = reader.ReadDouble();
-                    timeParameter.BeginTrimOffset = reader.ReadDouble();
-                    timeParameter.EndTrimOffset = reader.ReadDouble();
-                    timeParameter.EndOffset = reader.ReadDouble();
-                    attenuation.TimeParameters[i] = timeParameter;
-                }
-                if (attenuation.TimeParameterCount > 0)
-                {
-                    attenuation.SubTrackCount = reader.ReadUInt32();
-                }
-                attenuation.CurveCount = reader.ReadUInt32();
-                attenuation.Curves = new MusicTrackCurve[attenuation.CurveCount];
-                for (var i = 0; i < attenuation.CurveCount; i++)
-                {
-                    MusicTrackCurve curve = default;
-                    curve.TimeParameterIndex = reader.ReadUInt32();
-                    curve.Type = (MusicFadeCurveType)reader.ReadUInt32();
-                    curve.PointCount = reader.ReadUInt32();
-                    curve.Points = new MusicCurvePoint[curve.PointCount];
-                    for (var j = 0; j < curve.PointCount; j++)
+                    var cvTable = new ConversionTable();
+                    cvTable.eScaling = reader.ReadByte();
+                    cvTable.ulSize = reader.ReadUInt16();
+                    cvTable.GraphPoints = new RTPCGraphPoint[cvTable.ulSize];
+                    for (int j = 0; j < cvTable.ulSize; j++)
                     {
-                        MusicCurvePoint fadePoint = default;
-                        fadePoint.X = reader.ReadSingle();
-                        fadePoint.Y = reader.ReadSingle();
-                        fadePoint.FollowingCurveShape = (AudioCurveShapeUInt)reader.ReadUInt32();
-                        curve.Points[j] = fadePoint;
+                        var rtpcGraphPoint = new RTPCGraphPoint();
+                        rtpcGraphPoint.From = reader.ReadSingle();
+                        rtpcGraphPoint.To = reader.ReadSingle();
+                        rtpcGraphPoint.Interp = reader.ReadUInt32();
+                        cvTable.GraphPoints[j] = rtpcGraphPoint;
                     }
-                    attenuation.Curves[i] = curve;
                 }
-                attenuation.Properties = reader.ReadAudioProperties2019();
-                attenuation.TrackType = (MusicTrackType)reader.ReadByte();
-                if (attenuation.TrackType == MusicTrackType.Switch)
+
+                attenuation.numRTPC = reader.ReadUInt16();
+                for (int i = 0; i < attenuation.numRTPC; i++)
                 {
-                    MusicSwitchParameters switchParameters = default;
-                    switchParameters.Unknown = reader.ReadByte();
-                    switchParameters.GroupId = reader.ReadUInt32();
-                    switchParameters.DefaultSwitchOrStateId = reader.ReadUInt32();
-                    switchParameters.SubTrackCount = reader.ReadUInt32();
-                    switchParameters.AssociatedSwitchOrStateIds = new uint[switchParameters.SubTrackCount];
-                    for (var i = 0; i < switchParameters.SubTrackCount; i++)
-                    {
-                        switchParameters.AssociatedSwitchOrStateIds[i] = reader.ReadUInt32();
-                    }
-                    switchParameters.FadeOutDuration = reader.ReadUInt32();
-                    switchParameters.FadeOutCurveShape = (AudioCurveShapeUInt)reader.ReadUInt32();
-                    switchParameters.FadeOutOffset = reader.ReadInt32();
-                    switchParameters.ExitSourceAt = (MusicKeyPointByte)reader.ReadUInt32();
-                    switchParameters.ExitSourceAtCueId = reader.ReadUInt32();
-                    switchParameters.FadeInDuration = reader.ReadUInt32();
-                    switchParameters.FadeInCurveShape = (AudioCurveShapeUInt)reader.ReadUInt32();
-                    switchParameters.FadeInOffset = reader.ReadInt32();
-                    attenuation.SwitchParameters = switchParameters;
+
                 }
-                attenuation.LookAheadTime = reader.ReadUInt32();
 
                 Debug.Assert(reader.BaseStream.Position == reader.BaseStream.Length);
                 return attenuation;
-            }*/
+            }
         }
 
         public static AudioBus ParseAudioBus(byte[] data, bool auxiliary)

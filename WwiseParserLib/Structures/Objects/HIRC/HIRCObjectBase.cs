@@ -61,23 +61,25 @@ namespace WwiseParserLib.Structures.Objects.HIRC
     {
         Unknown,
         Settings,
-        Sound,
-        EventAction,
-        Event,
-        Container,
-        SwitchContainer,
-        ActorMixer,
-        AudioBus,
-        BlendContainer,
-        MusicSegment,
-        MusicTrack,
-        MusicSwitchContainer,
-        MusicPlaylistContainer,
+        Sound, // 0x2
+        EventAction, //0x3
+        Event, //0x4
+        Container, //0x5
+        SwitchContainer, //0x6
+        ActorMixer, // 0x7
+        AudioBus, //0x8
+        BlendContainer, //0x9
+        MusicSegment, //0xA
+        MusicTrack, // 0xB
+        MusicSwitchContainer, //0xC
+        MusicPlaylistContainer, //0xD
         Attenuation, // 0x0E
-        DialogueEvent,
-        MotionBus,
-        MotionEffect,
-        Effect,
+        DialogueEvent, //0xF
+        
+        // These don't match Wwiser code, not sure source of these
+        MotionBus, // 0x10 - Wwiser code differs starting here depending on bank version
+        MotionEffect, // 0x11
+        Effect, // 0x12
         Unknown_0x13,
         AuxiliaryBus
     }
